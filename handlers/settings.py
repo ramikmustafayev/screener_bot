@@ -17,23 +17,23 @@ async def cmd_settings(message:Message):
 @settings_router.message(F.text=='Период пампа')
 async def cmd_settings(message:Message,state:FSMContext,user:User,repo:RequestsRepo):
     await state.set_state(PumpState.pump_period)
-    settings=await repo.settings.get_one_or_none(user_id=user.id)
+    settings=await repo.settings.get_or_create(user_id=user.id)
     await message.answer(f'Текущий период времени, за который должен произойти памп - {settings.pump_period} мин. Введите новый период времени: От 1 до 30 мин',reply_markup=create_cancel_keyboard())
 
 @settings_router.message(F.text=='Процент пампа')
 async def cmd_settings(message:Message,state:FSMContext,user:User,repo:RequestsRepo):
     await state.set_state(PumpState.pump_percent)
-    settings=await repo.settings.get_one_or_none(user_id=user.id)
+    settings=await repo.settings.get_or_create(user_id=user.id)
     await message.answer(f'Текущий % изменения цены для пампа - {settings.pump_percent} %. Введите новый % изменения цены для пампа',reply_markup=create_cancel_keyboard())
 
 @settings_router.message(F.text=='Период дампа')
 async def cmd_settings(message:Message,state:FSMContext,user:User,repo:RequestsRepo):
-    settings=await repo.settings.get_one_or_none(user_id=user.id)
+    settings=await repo.settings.get_or_create(user_id=user.id)
     await state.set_state(DumpState.dump_period)
     await message.answer(f'Текущий период времени, за который должен произойти дамп - {settings.dump_period} мин. Введите новый период времени: От 1 до 30 мин',reply_markup=create_cancel_keyboard())
 @settings_router.message(F.text=='Процент дампа')
 async def cmd_settings(message:Message,state:FSMContext,user:User,repo:RequestsRepo):
-    settings=await repo.settings.get_one_or_none(user_id=user.id)
+    settings=await repo.settings.get_or_create(user_id=user.id)
     await state.set_state(DumpState.dump_percent)
     await message.answer(f'Текущий % изменения цены для дампа - {settings.dump_percent} %. Введите новый % изменения цены для пампа',reply_markup=create_cancel_keyboard())
 
@@ -80,9 +80,4 @@ async def process_pump_percent(message:Message,state:FSMContext,user,repo:Reques
 
 async def update_data(user,values_dict,repo:RequestsRepo):
     settings_repo=repo.settings
-    settings=await settings_repo.get_one_or_none(user_id=user.id)
-
-    if settings is None:
-        settings=await settings_repo.add(user_id=user.id,pump_period=15,dump_period=15,pump_percent=1,dump_percent=3)
-    
     await settings_repo.update({'user_id':user.id}, values_dict)
