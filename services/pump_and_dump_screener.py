@@ -33,7 +33,7 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                         
                        
                         if pump_token_from_db is None:
-                            new_pump_token= await repo.pump_tokens.add(ticker=token.ticker,last_price=token.last_price)
+                            new_pump_token= await repo.pump_tokens.add(ticker=token.ticker,last_price=token.last_price,sygnal_per_day=0)
                             # new_dump_token= await repo.dump_tokens.add(ticker=token.ticker,last_price=token.last_price)
                             pump_token_from_db=new_pump_token
                             # dump_token_from_db=new_dump_token
@@ -41,6 +41,7 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                         
                         last_pump_price=pump_token_from_db.last_price
                         last_pump_update=pump_token_from_db.updated_at
+                        sygnal_per_day=pump_token_from_db.sygnal_per_day
 
                         # last_dump_price=dump_token_from_db.last_price
                         # last_dump_update=dump_token_from_db.updated_at
@@ -49,11 +50,13 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                         if current_time-last_pump_update<timedelta(minutes=pump_period):
                             price_change_in_percent = ((current_price - last_pump_price) / last_pump_price) * 100
                             if price_change_in_percent>=pump_percent:
-                                await repo.pump_tokens.update({'ticker':ticker_name},{'last_price':current_price})
+                                sygnal_per_day+=1
+                                await repo.pump_tokens.update({'ticker':ticker_name},{'last_price':current_price,'sygnal_per_day':sygnal_per_day})
                                 href='https://www.coinglass.com/tv/Bybit_'+ticker_name
                                 await message.answer(f'''
                                 ByBit — {pump_period} — <a href="{href}">{ticker_name}</a>
 <b>Pump</b>: {price_change_in_percent:.2f}% ({last_pump_price} - {current_price})
+<b>Signal 24</b>: {sygnal_per_day}
                                 ''',parse_mode='HTML')
                         else:
                             await repo.pump_tokens.update({'ticker':ticker_name},{'updated_at':current_time})

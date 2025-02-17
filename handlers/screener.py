@@ -38,7 +38,7 @@ async def run_screener(message:Message,config,state:FSMContext,user,repo:Request
             tokens:list[Token]=await bybit_client.fetch_spot_symbols()
         finally:
             await bybit_client.close()
-        pump_tokens=[TokenForPump(ticker=token.ticker,last_price=token.last_price) for token in tokens]
+        pump_tokens=[TokenForPump(ticker=token.ticker,last_price=token.last_price,sygnal_per_day=0) for token in tokens]
         # dump_tokens=[TokenForDump(ticker=token.ticker,last_price=token.last_price) for token in tokens]
         await pump_tokens_repo.add_all(pump_tokens)
         # await dump_tokens_repo.add_all(dump_tokens)

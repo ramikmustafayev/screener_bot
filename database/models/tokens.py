@@ -10,6 +10,7 @@ class TokenBase(Base):
      id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
      ticker:Mapped[str]
      last_price:Mapped[float]
+     sygnal_per_day:Mapped[int]
 
 
 
