@@ -29,21 +29,21 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                              
                         current_price=token.last_price
                         pump_token_from_db=await repo.pump_tokens.get_one_or_none(ticker=ticker_name)
-                        dump_token_from_db=await repo.dump_tokens.get_one_or_none(ticker=ticker_name)
+                        # dump_token_from_db=await repo.dump_tokens.get_one_or_none(ticker=ticker_name)
                         
                        
                         if pump_token_from_db is None:
                             new_pump_token= await repo.pump_tokens.add(ticker=token.ticker,last_price=token.last_price)
-                            new_dump_token= await repo.dump_tokens.add(ticker=token.ticker,last_price=token.last_price)
+                            # new_dump_token= await repo.dump_tokens.add(ticker=token.ticker,last_price=token.last_price)
                             pump_token_from_db=new_pump_token
-                            dump_token_from_db=new_dump_token
+                            # dump_token_from_db=new_dump_token
                             
                         
                         last_pump_price=pump_token_from_db.last_price
                         last_pump_update=pump_token_from_db.updated_at
 
-                        last_dump_price=dump_token_from_db.last_price
-                        last_dump_update=dump_token_from_db.updated_at
+                        # last_dump_price=dump_token_from_db.last_price
+                        # last_dump_update=dump_token_from_db.updated_at
 
                      
                         if current_time-last_pump_update<timedelta(minutes=pump_period):
@@ -59,17 +59,17 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                             await repo.pump_tokens.update({'ticker':ticker_name},{'updated_at':current_time})
                     
 
-                        if current_time-last_dump_update<timedelta(minutes=dump_period):
-                            price_change_in_percent = ((current_price - last_dump_price) / last_dump_price) * 100
-                            if price_change_in_percent<=-dump_percent:
-                                href='https://www.coinglass.com/tv/Bybit_'+ticker_name
-                                await repo.dump_tokens.update({'ticker':ticker_name},{'last_price':current_price})
-                                await message.answer(f'''
-                                ByBit — {dump_period} — <a href="{href}">{ticker_name}</a>
-<b>Dump</b>: {price_change_in_percent:.2f}% ({last_dump_price} - {current_price})
-                                ''',parse_mode='HTML')
-                        else:
-                            await repo.dump_tokens.update({'ticker':ticker_name},{'updated_at':current_time})
+#                         if current_time-last_dump_update<timedelta(minutes=dump_period):
+#                             price_change_in_percent = ((current_price - last_dump_price) / last_dump_price) * 100
+#                             if price_change_in_percent<=-dump_percent:
+#                                 href='https://www.coinglass.com/tv/Bybit_'+ticker_name
+#                                 await repo.dump_tokens.update({'ticker':ticker_name},{'last_price':current_price})
+#                                 await message.answer(f'''
+#                                 ByBit — {dump_period} — <a href="{href}">{ticker_name}</a>
+# <b>Dump</b>: {price_change_in_percent:.2f}% ({last_dump_price} - {current_price})
+#                                 ''',parse_mode='HTML')
+#                         else:
+#                             await repo.dump_tokens.update({'ticker':ticker_name},{'updated_at':current_time})
 
                    
                    
