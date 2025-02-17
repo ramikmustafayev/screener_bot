@@ -17,7 +17,7 @@ screener_router=Router()
 
 
 @screener_router.message(F.text=='/run')
-async def run_screener(message:Message,session,config,state:FSMContext,user,repo:RequestsRepo):
+async def run_screener(message:Message,config,state:FSMContext,user,repo:RequestsRepo):
 
     try:
         base_url=config.api.url
@@ -58,7 +58,11 @@ async def run_screener(message:Message,session,config,state:FSMContext,user,repo
    
   
 
-
+@screener_router.message(F.text=='/delete_database')
+async def run_screener(message:Message,repo:RequestsRepo):
+    pump_repo=repo.pump_tokens
+    await pump_repo.delete_all()
+    await message.answer('База данных очищена')
 
 
 

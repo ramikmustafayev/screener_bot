@@ -67,6 +67,14 @@ class BaseRepo:
             await self.session.rollback()
 
 
+    async def delete_all(self):
+        stmt=delete(self.model)
+        try:
+            await self.session.execute(stmt)
+            await self.session.commit()
+        except SQLAlchemyError:
+            await self.session.rollback()
+
 
 
     

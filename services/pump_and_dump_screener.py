@@ -18,9 +18,9 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
 
                     pump_period=settings.pump_period
                     pump_percent=settings.pump_percent
-                    dump_period=settings.dump_period
-                    dump_percent=settings.dump_percent
-                    print('hello')
+                    # dump_period=settings.dump_period
+                    # dump_percent=settings.dump_percent
+                
                     current_time=datetime.now()
 
                     for token in tokens:
@@ -45,7 +45,7 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                         # last_dump_price=dump_token_from_db.last_price
                         # last_dump_update=dump_token_from_db.updated_at
 
-                     
+                        print(current_time-last_pump_update)
                         if current_time-last_pump_update<timedelta(minutes=pump_period):
                             price_change_in_percent = ((current_price - last_pump_price) / last_pump_price) * 100
                             if price_change_in_percent>=pump_percent:

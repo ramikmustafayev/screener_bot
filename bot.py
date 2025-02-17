@@ -19,6 +19,7 @@ async def set_commands(bot):
                 BotCommand(command='add', description='Добавить монету в список отслеживаемых токенов'),
                 BotCommand(command='delete', description='Удалить монету из списка отслеживаемых токенов'),
                 BotCommand(command='list', description='Показать список отслеживаемых токенов'),
+                BotCommand(command='delete_database', description='Очистить базу данных'),  
                 BotCommand(command='settings', description='Настройки бота'),
                 
                 ]
