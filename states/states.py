@@ -14,3 +14,7 @@ class DumpState(StatesGroup):
 class TokenState(StatesGroup):
     token_name =State()
     token_id =State()
+
+class BlackListState(StatesGroup):
+    token_name =State()
+    

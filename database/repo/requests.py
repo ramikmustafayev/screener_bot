@@ -4,6 +4,8 @@ from database.repo.users import UserRepo
 from database.repo.tokens import PumpTokensRepo,DumpTokensRepo
 from database.repo.watch_list import WatchListRepo
 from database.repo.settings import SettingsRepo
+from database.repo.black_list import BlackListRepo
+
 @dataclass
 class RequestsRepo:
 
@@ -27,6 +29,10 @@ class RequestsRepo:
     @property
     def watchlist(self):
         return WatchListRepo(self.session)
+    
+    @property
+    def blacklist(self):
+        return BlackListRepo(self.session)
     
     @property
     def settings(self):

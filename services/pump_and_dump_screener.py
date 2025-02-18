@@ -26,6 +26,10 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                     for token in tokens:
 
                         ticker_name=token.ticker
+                        token_in_blacklist=await repo.blacklist.get_one_or_none(ticker=ticker_name)
+
+                        if token_in_blacklist:
+                             continue
                              
                         current_price=token.last_price
                         pump_token_from_db=await repo.pump_tokens.get_one_or_none(ticker=ticker_name)
@@ -46,7 +50,6 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
                         # last_dump_price=dump_token_from_db.last_price
                         # last_dump_update=dump_token_from_db.updated_at
 
-                        print(current_time-last_pump_update)
                         if current_time-last_pump_update<timedelta(minutes=pump_period):
                             price_change_in_percent = ((current_price - last_pump_price) / last_pump_price) * 100
                             if price_change_in_percent>=pump_percent:

@@ -24,6 +24,8 @@ async def set_commands(bot):
                 BotCommand(command='list', description='Показать список отслеживаемых токенов'),
                 BotCommand(command='delete_database', description='Очистить базу данных'),  
                 BotCommand(command='settings', description='Настройки бота'),
+                BotCommand(command='add_to_black_list', description='Добавить токен в черный список'),
+                BotCommand(command='tokens_in_black_list', description='Показать токены в черном списке'),
                 
                 ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())

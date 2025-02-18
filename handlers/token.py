@@ -1,7 +1,7 @@
 from aiogram import Router ,F
 from aiogram.types import ReplyKeyboardRemove
 from aiogram.types import Message
-from states.states import TokenState
+from states.states import TokenState,BlackListState
 from aiogram.fsm.context import FSMContext
 from database.repo.requests import RequestsRepo
 from services.track_prices import track_target_prices
@@ -15,10 +15,35 @@ async def add_token(message:Message,state:FSMContext):
     await message.answer('Введите токен, таргет-цену и направление("+"-выше, "-"-ниже) через пробел',reply_markup=create_cancel_keyboard())
 
 
+@token_router.message(F.text=='/add_to_black_list')
+async def add_token(message:Message,state:FSMContext):
+    await state.set_state(BlackListState.token_name)
+    await message.answer('Введите название токена',reply_markup=create_cancel_keyboard())
+
+@token_router.message(F.text=='/tokens_in_black_list')
+async def tokens_in_black_list(message:Message,repo:RequestsRepo):
+    repo=repo.blacklist
+    
+    tokens=await repo.get_all()
+    for token in tokens:
+        await message.answer(f'id: {token.id} ticker: {token.ticker}')
+
+
+
 @token_router.message(F.text=='Отмена')
 async def cancel(message:Message,state:FSMContext):
     await state.set_state(None)
     await message.answer('Отмена',reply_markup=ReplyKeyboardRemove())
+
+
+@token_router.message(BlackListState.token_name)
+async def process_add_to_black_list(message:Message,state:FSMContext,user,repo:RequestsRepo):
+    data=message.text
+    ticker=data.upper()+'USDT'
+    black_list_repo=repo.blacklist
+    await black_list_repo.add(ticker=ticker)
+    await message.answer('Токен успешно добавлен в черный список')
+    await state.set_state(None)
 
 
 @token_router.message(TokenState.token_name)
@@ -74,7 +99,7 @@ async def process_delete_token(message:Message,state:FSMContext,session,user,rep
 
 
 @token_router.message(F.text=='/list')
-async def get_tokens_list(message:Message,session,user,repo:RequestsRepo):
+async def get_tokens_list(message:Message,user,repo:RequestsRepo):
     repo=repo.watchlist
     
     tokens=await repo.get_all_by_user_id(user_id=user.id)
