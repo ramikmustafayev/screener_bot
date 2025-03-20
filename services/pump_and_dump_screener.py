@@ -62,7 +62,7 @@ async def track_prices(message,repo:RequestsRepo,settings,config):
 <b>Signal 24</b>: {sygnal_per_day}
                                 ''',parse_mode='HTML')
                         else:
-                            await repo.pump_tokens.update({'ticker':ticker_name},{'updated_at':current_time})
+                            await repo.pump_tokens.update({'ticker':ticker_name},{'last_price':current_price 'updated_at':current_time})
                     
 
 #                         if current_time-last_dump_update<timedelta(minutes=dump_period):
