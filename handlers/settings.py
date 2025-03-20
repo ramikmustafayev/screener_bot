@@ -57,7 +57,7 @@ async def process_pump_period(message:Message,state:FSMContext,user:User,repo:Re
 async def process_pump_percent(message:Message,state:FSMContext,user,repo:RequestsRepo):
     data=message.text
     await update_data(user,{'pump_percent':float(data)},repo)
-    await message.answer(f'new value for pump percent {float(data)}')
+    await message.answer(f'new value for pump percent {float(data)}',reply_markup=ReplyKeyboardRemove())
     await state.set_state(None)
 
 
@@ -65,7 +65,7 @@ async def process_pump_percent(message:Message,state:FSMContext,user,repo:Reques
 async def process_dump_period(message:Message,state:FSMContext,user,repo:RequestsRepo):
     data=message.text
     await update_data(user,{'dump_period':int(data)},repo)
-    await message.answer(f'new value for dump period {int(data)}')
+    await message.answer(f'new value for dump period {int(data)}',reply_markup=ReplyKeyboardRemove())
     await state.set_state(None)
 
 
@@ -73,7 +73,7 @@ async def process_dump_period(message:Message,state:FSMContext,user,repo:Request
 async def process_pump_percent(message:Message,state:FSMContext,user,repo:RequestsRepo):
     data=message.text
     await update_data(user,{'dump_percent':float(data)},repo)
-    await message.answer(f'new value for dump percent {float(data)}')
+    await message.answer(f'new value for dump percent {float(data)}',reply_markup=ReplyKeyboardRemove())
     await state.set_state(None)
 
 

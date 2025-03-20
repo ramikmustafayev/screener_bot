@@ -17,4 +17,5 @@ class TokenState(StatesGroup):
 
 class BlackListState(StatesGroup):
     token_name =State()
+    token_id =State()
     

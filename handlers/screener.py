@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from database.repo.requests import RequestsRepo
 from client_api.schemas import Token
-from database.models import TokenForDump,TokenForPump
+from database.models import TokenForPump
 from client_api.bybit_api import BybitClient
 from services.pump_and_dump_screener import track_prices
 screener_router=Router()

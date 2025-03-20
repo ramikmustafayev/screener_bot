@@ -22,11 +22,13 @@ async def add_token(message:Message,state:FSMContext):
 
 @token_router.message(F.text=='/tokens_in_black_list')
 async def tokens_in_black_list(message:Message,repo:RequestsRepo):
+    tokens_in_black_list=''
     repo=repo.blacklist
-    
     tokens=await repo.get_all()
     for token in tokens:
-        await message.answer(f'id: {token.id} ticker: {token.ticker}')
+        tokens_in_black_list+=f'id: {token.id} ticker: {token.ticker}\n'
+    
+    await message.answer(tokens_in_black_list)
 
 
 
@@ -42,7 +44,7 @@ async def process_add_to_black_list(message:Message,state:FSMContext,user,repo:R
     ticker=data.upper()+'USDT'
     black_list_repo=repo.blacklist
     await black_list_repo.add(ticker=ticker)
-    await message.answer('Токен успешно добавлен в черный список')
+    await message.answer('Токен успешно добавлен в черный список',reply_markup=ReplyKeyboardRemove())
     await state.set_state(None)
 
 
@@ -67,7 +69,7 @@ async def process_add_token(message:Message,state:FSMContext,user,config,repo:Re
         return
 
     await watch_list_repo.add(user_id=user.id,ticker=ticker,target_price=float(price),direction=direction)
-    await message.answer('Токен успешно добавлен в список отслеживаемых')
+    await message.answer('Токен успешно добавлен в список отслеживаемых',reply_markup=ReplyKeyboardRemove())
     await state.clear()
     await track_target_prices(message,repo,config,user)
     
@@ -86,14 +88,28 @@ async def delete_token(message:Message,state:FSMContext):
     await state.set_state(TokenState.token_id)
     await message.answer('Введите ID токена')
 
+@token_router.message(F.text=='/delete_from_black_list')
+async def delete_token(message:Message,state:FSMContext):
+    await state.set_state(BlackListState.token_id)
+    await message.answer('Введите ID токена')
+
+
+@token_router.message(BlackListState.token_id)
+async def process_delete_token_from_black_list(message:Message,state:FSMContext,repo:RequestsRepo):
+    id=int(message.text)
+    repo=repo.blacklist
+    await repo.delete({'id':id})
+    await message.answer(f'Token with id {id} succesfully deleted')
+    await state.set_state(None)
+
 
 @token_router.message(TokenState.token_id)
-async def process_delete_token(message:Message,state:FSMContext,session,user,repo:RequestsRepo):
+async def process_delete_token(message:Message,state:FSMContext,user,repo:RequestsRepo):
     id=int(message.text)
     repo=repo.watchlist
     await repo.delete({'user_id':user.id,'id':id})
     await message.answer(f'Token with id {id} succesfully deleted')
-    await state.clear()
+    await state.set_state(None)
 
 
 
