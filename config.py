@@ -40,13 +40,19 @@ class TgBot:
         return TgBot(token=token)
     
 @dataclass
+    
+@dataclass
 class API:
-    url:str
+    bybit_url:str
+    crypto_rank_url:str
+    crypto_rank_api_key:str
 
     @staticmethod
     def from_env(env: AutoConfig):
-        url=env('BYBIT_URL')
-        return API(url=url)
+        bybit_url=env('BYBIT_URL')
+        crypto_rank_url=env('CRYPTORANK_URL')
+        crypto_rank_api_key=env('CRYPTORANK_API_KEY')
+        return API(bybit_url=bybit_url,crypto_rank_url=crypto_rank_url,crypto_rank_api_key=crypto_rank_api_key)
     
 
 @dataclass

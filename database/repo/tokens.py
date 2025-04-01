@@ -1,15 +1,14 @@
 from database.repo.base import BaseRepo
-from database.models import TokenForDump,TokenForPump
+from database.models import Token
 
 
     
 
-class PumpTokensRepo(BaseRepo):
-    model=TokenForPump
+class TokensRepo(BaseRepo):
+    model=Token
 
 
-class DumpTokensRepo(BaseRepo):
-    model=TokenForDump
+
     
     
 

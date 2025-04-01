@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.repo.users import UserRepo
-from database.repo.tokens import PumpTokensRepo,DumpTokensRepo
+from database.repo.tokens import TokensRepo
 from database.repo.watch_list import WatchListRepo
-from database.repo.settings import SettingsRepo
-from database.repo.black_list import BlackListRepo
 
 @dataclass
 class RequestsRepo:
@@ -19,21 +17,13 @@ class RequestsRepo:
     
 
     @property
-    def pump_tokens(self):
-        return PumpTokensRepo(self.session)
+    def tokens(self):
+        return TokensRepo(self.session)
     
-    @property
-    def dump_tokens(self):
-        return DumpTokensRepo(self.session)
+
     
     @property
     def watchlist(self):
         return WatchListRepo(self.session)
     
-    @property
-    def blacklist(self):
-        return BlackListRepo(self.session)
-    
-    @property
-    def settings(self):
-        return SettingsRepo(self.session)
+

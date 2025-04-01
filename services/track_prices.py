@@ -5,11 +5,12 @@ import asyncio
 async def track_target_prices(message,repo:RequestsRepo,config,user):
     base_url=config.api.url
     bybit_client=BybitClient(base_url)
-    while all_tokens:=await repo.watchlist.get_all_by_user_id(user_id=user.id):
+    while all_tokens:=await repo.watchlist.get_all(user_id=user.id):
         
         for token in all_tokens:
             try:
-                token_price=await bybit_client.fetch_token_price(token.ticker)
+                token_info=await bybit_client.fetch_token_info(token.ticker)
+                token_price=float(token_info['lastPrice'])
             except Exception as e:
                 print('Connection error')
                 await bybit_client.close()

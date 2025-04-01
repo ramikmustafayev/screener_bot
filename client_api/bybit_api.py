@@ -1,5 +1,6 @@
 from client_api.base import BaseClient
 from client_api.schemas import Token
+
 class BybitClient(BaseClient):
 
     def __init__(self,base_url):
@@ -21,9 +22,9 @@ class BybitClient(BaseClient):
       
         return tokens
     
-    async def fetch_token_price(self,symbol):
+    async def fetch_token_info(self,symbol):
         params={'category':'spot','symbol':symbol}
         result=await self.make_request(method='GET',url='/v5/market/tickers/',params=params)
         token=result['result']['list'][0]
-        return float(token['lastPrice'])
+        return token
     

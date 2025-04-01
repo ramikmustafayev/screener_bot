@@ -39,6 +39,15 @@ class BaseRepo:
         except SQLAlchemyError:
             raise
         return token
+    
+    async def get_all(self,**filter):
+        try:
+            stmt = select(self.model).filter_by(**filter)
+            result = await self.session.scalars(stmt)
+            return result.all()
+        except SQLAlchemyError:
+            raise
+
 
 
     async def is_table_empty(self):

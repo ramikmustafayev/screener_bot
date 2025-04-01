@@ -22,12 +22,8 @@ async def set_commands(bot):
                 BotCommand(command='add', description='Добавить монету в список отслеживаемых токенов'),
                 BotCommand(command='delete', description='Удалить монету из списка отслеживаемых токенов'),
                 BotCommand(command='list', description='Показать список отслеживаемых токенов'),
-                BotCommand(command='delete_database', description='Очистить базу данных'),  
-                BotCommand(command='settings', description='Настройки бота'),
-                BotCommand(command='add_to_black_list', description='Добавить токен в черный список'),
-                BotCommand(command='delete_from_black_list', description='Удалить токен из черного списка'),
+                BotCommand(command='token_info', description='Показать информацию о токене'),
                 BotCommand(command='tokens_in_black_list', description='Показать токены в черном списке'),
-                
                 ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
     
@@ -40,6 +36,9 @@ def register_global_middlewares(dp:Dispatcher,config:Config,session_pool:AsyncSe
 
     for middleware_type in middleware_types:
         dp.message.outer_middleware(middleware_type)
+
+    for middleware_type in middleware_types:
+        dp.callback_query.outer_middleware(middleware_type)
         
 
 
