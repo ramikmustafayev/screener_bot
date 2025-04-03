@@ -58,10 +58,14 @@ class BaseRepo:
 
 
     async def update(self,filter_dict,values_dict):
+        
         stmt=update(self.model).where(*[getattr(self.model,k)==v for k,v in filter_dict.items()]).values(**values_dict).execution_options(synchronize_session='fetch')
         try:
             await self.session.execute(stmt)
             await self.session.commit()
+            stmt_select = select(self.model).filter_by(**filter_dict)
+            updated_object = await self.session.scalar(stmt_select)
+            return updated_object
         except SQLAlchemyError:
             await self.session.rollback()
 
@@ -70,8 +74,9 @@ class BaseRepo:
     async def delete(self,filter):
         stmt=delete(self.model).filter_by(**filter)
         try:
-            await self.session.execute(stmt)
+            result = await self.session.execute(stmt)
             await self.session.commit()
+            return result.rowcount
         except SQLAlchemyError:
             await self.session.rollback()
 

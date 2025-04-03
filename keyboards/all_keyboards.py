@@ -27,8 +27,11 @@ def get_inline_back_kb(ticker):
     return keyboard
 
 
-def get_inline_kb(ticker_name,volatility=None,liquidity=None,sma=None,is_in_blacklist=None,is_interesting=None):
-    
+def get_inline_kb(token:Token,volatility=None,liquidity=None,sma=None):
+    is_in_blacklist=token.is_in_blacklist
+    is_interesting=token.is_interesting
+    ticker_name=token.ticker
+
     inline_kb_list=[
         [InlineKeyboardButton(text='Добавить в черный список' if is_in_blacklist==False else 'Удалить из черного списка'  ,callback_data=f'inline_add_to_black_list:{ticker_name}'),
         InlineKeyboardButton(text='Добавить в избранное' if is_interesting==False else 'Удалить из избранных',callback_data=f'inline_into_interesting:{ticker_name}')],
@@ -43,9 +46,16 @@ def get_inline_kb(ticker_name,volatility=None,liquidity=None,sma=None,is_in_blac
 
     
 def get_token_info_kb(token:Token):
+    is_in_blacklist=token.is_in_blacklist
+    is_interesting=token.is_interesting
+    ticker_name=token.ticker
+
     kb_list=[
-        [InlineKeyboardButton(text='Изменить процент пампа для токена',callback_data=f'inline_change_pump_percent:{token.ticker}')],
-        [InlineKeyboardButton(text='Изменить период пампа для всех токенов',callback_data=f'inline_chance_pump_period:{token.ticker}')],
+        [InlineKeyboardButton(text='Добавить в черный список' if is_in_blacklist==False else 'Удалить из черного списка'  ,callback_data=f'inline_add_to_black_list_info:{ticker_name}')],
+        [InlineKeyboardButton(text='Добавить в избранное' if is_interesting==False else 'Удалить из избранных',callback_data=f'inline_into_interesting_info:{ticker_name}')],
+        [InlineKeyboardButton(text='Изменить процент пампа для токена',callback_data=f'inline_change_pump_percent:{ticker_name}')],
+        [InlineKeyboardButton(text='Изменить процент пампа для всех токенов',callback_data=f'inline_change_pump_percent_all:{ticker_name}')],
+        [InlineKeyboardButton(text='Изменить период пампа для всех токенов',callback_data=f'inline_chance_pump_period:{ticker_name}')],
     ]
 
     markup=InlineKeyboardMarkup(inline_keyboard=kb_list)

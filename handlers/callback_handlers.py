@@ -1,17 +1,19 @@
 from aiogram import Router,F
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from services.liquidity_and_volatility_calculator import calculate_liquidity,calculate_volatility
 from services.sma_calculator import calculate_sma50
-from keyboards.all_keyboards import get_inline_kb,get_inline_back_kb
+from keyboards.all_keyboards import get_inline_kb,get_inline_back_kb,get_token_info_kb,create_cancel_keyboard
 from database.models.tokens import Token
 from client_api.crypto_rank import CryptoRankCLient
 from client_api.bybit_api import BybitClient
+from states.states import PumpState
 callback_router=Router()
 
 #{'spread(%)':round(spread,4),'buy_liq(1%)':round(buy_liq,2),'sell_liq(1%)':round(sell_liq,2),'total_liq':round(total_liq,2)}
 
 @callback_router.callback_query(F.data.startswith('inline_'))
-async def process_inline_callback(call:CallbackQuery,user,repo,config):
+async def process_inline_callback(call:CallbackQuery,user,repo,config,state:FSMContext):
     tokens=repo.tokens
    
     user_id = user.id
@@ -46,9 +48,25 @@ async def process_inline_callback(call:CallbackQuery,user,repo,config):
 
     elif data=='add_to_black_list':
         
-        await tokens.update({'ticker':ticker,'user_id':user_id},{'is_in_blacklist':not is_in_blacklist})
-        markup=get_inline_kb(ticker,is_in_blacklist=not is_in_blacklist,is_interesting=is_interesting)
+        updated_token=await tokens.update({'ticker':ticker,'user_id':user_id},{'is_in_blacklist':not is_in_blacklist})
+        markup=get_inline_kb(updated_token)
         await call.message.edit_reply_markup(reply_markup=markup)
+
+    elif data=='inline_into_interesting':
+        updated_token=await tokens.update({'ticker':ticker,'user_id':user_id},{'is_interesting':not is_interesting})
+        markup=get_inline_kb(updated_token)
+        await call.message.edit_reply_markup(reply_markup=markup)
+
+    elif data=='add_to_black_list_info':
+        updated_token:Token=await tokens.update({'ticker':ticker,'user_id':user_id},{'is_in_blacklist':not is_in_blacklist})
+        markup=get_token_info_kb(updated_token)
+        await call.message.edit_reply_markup(reply_markup=markup)
+
+    elif data=='into_interesting_info':
+        updated_obj:Token=await tokens.update({'ticker':ticker,'user_id':user_id},{'is_interesting':not is_interesting})
+        markup=get_token_info_kb(updated_obj)
+        await call.message.edit_reply_markup(reply_markup=markup)
+
     elif data=='info':
         
         client=CryptoRankCLient(config.api.crypto_rank_url)
@@ -87,10 +105,20 @@ async def process_inline_callback(call:CallbackQuery,user,repo,config):
 <b>Signal 24</b>: {token.sygnal_per_day}
                                 ''',parse_mode='HTML',reply_markup=get_inline_kb(ticker_name=ticker,is_interesting=is_interesting,is_in_blacklist=is_in_blacklist))
     
-    else:
-        await tokens.update({'ticker':ticker,'user_id':user_id},{'is_interesting':not is_interesting})
-        markup=get_inline_kb(ticker,is_interesting= not is_interesting,is_in_blacklist=is_in_blacklist)
-        await call.message.edit_reply_markup(reply_markup=markup)
+    elif data=='change_pump_percent':
+        await state.set_state(PumpState.pump_percent)
+        await state.update_data(ticker=ticker)
+        await call.message.answer(f'Введите новое значение для токена: {token.ticker}',reply_markup=create_cancel_keyboard())
+
+    elif data=='change_pump_percent_all':
+        await state.set_state(PumpState.pump_percent)
+        await state.update_data(ticker='all')
+        await call.message.answer('Введите новое значение для всех токенов:',reply_markup=create_cancel_keyboard())
+
+    elif data=='chance_pump_period':
+        await state.set_state(PumpState.pump_period)
+        await call.message.answer('Введите новое значение для всех токенов:',reply_markup=create_cancel_keyboard())
+    
 
     
 

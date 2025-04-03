@@ -51,17 +51,16 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
                 
                             if price_change_in_percent>=pump_percent:
                                 sygnal_per_day+=1
-                                await repo.tokens.update({'ticker':ticker_name},{'last_price':current_price,'sygnal_per_day':sygnal_per_day})
-                                href='https://www.coinglass.com/tv/Bybit_'+ticker_name
+                                await repo.tokens.update({'ticker':ticker_name},{'last_price':current_price,'sygnal_per_day':sygnal_per_day,'updated_at':current_time})
                                 await message.answer(f'''
-                                ByBit — {pump_period} — <a href="{href}">{ticker_name}</a>
+                                ByBit — {pump_period} — <b>{ticker_name}</b>
 <b>Pump</b>: {price_change_in_percent:.2f}% ({last_pump_price:.8f} - {current_price:.8f})
 <b>Signal 24</b>: {sygnal_per_day}
                                 ''',parse_mode='HTML',reply_markup=get_inline_kb(ticker_name,is_interesting=is_interesting))
                         else:
-                            await repo.tokens.update({'ticker':ticker_name,'user_id':user.id},{'last_price':current_price})
+                            await repo.tokens.update({'ticker':ticker_name,'user_id':user.id},{'last_price':current_price,'updated_at':current_time})
                     
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
                             
             except asyncio.CancelledError as e:
                 raise asyncio.CancelledError

@@ -3,7 +3,7 @@ from client_api.bybit_api import BybitClient
 import asyncio
 
 async def track_target_prices(message,repo:RequestsRepo,config,user):
-    base_url=config.api.url
+    base_url=config.api.bybit_url
     bybit_client=BybitClient(base_url)
     while all_tokens:=await repo.watchlist.get_all(user_id=user.id):
         

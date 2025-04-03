@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 class Base(AsyncAttrs,DeclarativeBase):
     __abstract__=True
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now())
-    updated_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(), onupdate=lambda: datetime.now())
+    updated_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now())
     
 
     @declared_attr.directive
