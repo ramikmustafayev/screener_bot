@@ -1,22 +1,5 @@
-import aiohttp
-import asyncio
-from datetime import datetime
 
-async def fetch_klines(session, symbol="BTCUSDT", interval="240", limit=100):
-    url = "https://api.bybit.com/v5/market/kline"
-    params = {
-        "category": "spot",
-        "symbol": symbol,
-        "interval": interval,
-        "limit": limit
-    }
-    async with session.get(url, params=params) as response:
-        data = await response.json()
-        if data["retCode"] == 0:
-            return data["result"]["list"]
-        else:
-            raise Exception(f"API Error: {data['retMsg']}")
-
+         
 def calculate_rsi(prices, period=14):
     prices = [float(price) for price in prices]
     if len(prices) < period + 1:  # Нужно минимум period+1 свечей для period изменений
@@ -44,21 +27,27 @@ def calculate_rsi(prices, period=14):
     rs = avg_gain / avg_loss
     return 100 - (100 / (1 + rs))
 
-async def get_rsi14(symbol="BTCUSDT"):
-    async with aiohttp.ClientSession() as session:
-        klines = await fetch_klines(session, symbol, "240", 100)
-        
-        # Переворачиваем порядок: от старых к новым
-        closes = [kline[4] for kline in klines][::-1]
-        
-        # Берем все доступные данные (минимум 15 свечей для RSI14)
-        rsi_value = calculate_rsi(closes, period=14)
-        
-        last_timestamp = datetime.fromtimestamp(int(klines[0][0]) / 1000)
-        
-        return {
-          
-            "rsi14": round(rsi_value, 2) if rsi_value is not None else None,
-           
-        }
+
+
+
+def process_symbol_data(args):
+    symbol=args['symbol']
+    klines=args['list']
+
+    if len(klines) < 15:
+        return {"symbol": symbol, "rsi14": 0}
+
+    closes = [float(kline[4]) for kline in klines][::-1]
+    rsi_value = calculate_rsi(closes, period=14)
+
+
+
+    return {
+        "symbol": symbol,
+        "rsi14": round(rsi_value, 2) if rsi_value is not None else None,
+    
+    }
+
+
+
 

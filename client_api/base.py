@@ -18,6 +18,8 @@ class BaseClient:
 
 
     async def make_request(self,method,url,params=None,json=None,headers=None,data=None):
+        
+         
         session=await self._get_session()
         async with session.request(method, url, params=params, json=json, headers=headers, data=data) as response:
             status=response.status
@@ -28,9 +30,10 @@ class BaseClient:
                 result=await response.json()
             except Exception as e:
                 result={}
-
         return result
-    
+        
+     
+        
     async def close(self):
         if not self._session:
             return

@@ -17,13 +17,19 @@ from tasks.reset_column import reset_column
 
 async def set_commands(bot):
     commands = [BotCommand(command='start', description='Запуск бота'),
-                BotCommand(command='run', description='Запустить скринер'),
-                BotCommand(command='stop', description='Остановить скринер'),
-                BotCommand(command='add', description='Добавить монету в список отслеживаемых токенов'),
-                BotCommand(command='delete', description='Удалить монету из списка отслеживаемых токенов'),
-                BotCommand(command='list', description='Показать список отслеживаемых токенов'),
+                BotCommand(command='run_screener', description='Запустить скринер'),
+                BotCommand(command='stop_screener', description='Остановить скринер'),
+                BotCommand(command='add_to_watchlist', description='Добавить монету в список отслеживаемых токенов'),
+                BotCommand(command='delete_from_watchlist', description='Удалить монету из списка отслеживаемых токенов'),
+                BotCommand(command='watchlist', description='Показать список отслеживаемых токенов'),
                 BotCommand(command='token_info', description='Показать информацию о токене'),
-                BotCommand(command='tokens_in_black_list', description='Показать токены в черном списке'),
+                BotCommand(command='refresh_database', description='Обновить базу данных'),
+                BotCommand(command='update_token_info', description='Обновить базу данных с CryptoRank'),
+                BotCommand(command='add_preset', description='Добавить новый пресет с запросом SQL'),
+                BotCommand(command='delete_preset', description='Удалить пресет по ID'),
+                BotCommand(command='list_presets', description='Показать список пресетов'),
+                BotCommand(command='get_preset', description='Получить запрос для выбранного пресета по ID'),
+                BotCommand(command='run_preset', description='Выполнить пресет с заданным ID'),
                 ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
     
@@ -35,12 +41,9 @@ def register_global_middlewares(dp:Dispatcher,config:Config,session_pool:AsyncSe
     ]
 
     for middleware_type in middleware_types:
-        dp.message.outer_middleware(middleware_type)
+        dp.update.outer_middleware(middleware_type)
 
-    for middleware_type in middleware_types:
-        dp.callback_query.outer_middleware(middleware_type)
-        
-
+  
 
 
 async def main():

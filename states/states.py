@@ -11,6 +11,11 @@ class TokenState(StatesGroup):
     token_id =State()
 
 
+
+class SQLQueryState(StatesGroup):
+    waiting_for_query = State()
+
+
 class TokenInfoState(StatesGroup):
     token_name =State()
     token_id =State()

@@ -1,34 +1,22 @@
-import aiohttp
-
-
-# Функция для получения исторических данных по свечам
-async def get_klines(symbol, interval="240", limit=50):
-    url = "https://api.bybit.com/v5/market/kline"
-    params = {
-        "category": "spot",
-        "symbol": symbol,
-        "interval": interval,
-        "limit": limit
-    }
+def calculate_sma50(args):
+    symbol = args['symbol']
+    klines = args['list']
     
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            data = await response.json()
+
+
+    # Разворачиваем, чтобы старые были первыми
+    klines = list(reversed(klines))
     
-    if data["retCode"] == 0:
-        return data["result"]["list"]
-    else:
-        raise Exception(f"Ошибка API: {data}")
-
-# Функция для вычисления SMA 50
-async def calculate_sma50(symbol):
-    klines = await get_klines(symbol)
-
-    # Достаем последние 50 закрытых цен
+    # Берём последние 50 закрытых свечей
+    klines = klines[-50:]
     close_prices = [float(kline[4]) for kline in klines]
 
-    # Вычисляем среднее
-    sma50 =str(round(sum(close_prices) / len(close_prices),2))
-    return sma50
+    if len(close_prices) < 50:
+        return {"symbol": symbol, "sma50": 0}
 
-
+    # Вычисляем SMA
+    sma50 = str(round(sum(close_prices) / len(close_prices), 6))
+    return {
+        "symbol": symbol,
+        "sma50": sma50,
+    }
