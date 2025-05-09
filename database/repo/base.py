@@ -51,7 +51,10 @@ class BaseRepo:
             if limit:
                 stmt = stmt.limit(limit)
             result = await self.session.scalars(stmt)
-            return result.all()
+            tokens= result.all()
+            for token in tokens:
+                await self.session.refresh(token)  # Принудительно обновляем каждый объект
+            return tokens
         except SQLAlchemyError:
             raise
 

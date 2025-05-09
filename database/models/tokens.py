@@ -1,6 +1,6 @@
 import typing
 from sqlalchemy.orm import Mapped, mapped_column,relationship
-from sqlalchemy import ForeignKey,Integer,Boolean
+from sqlalchemy import ForeignKey,Integer,String,Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from .base import Base
 
@@ -14,20 +14,18 @@ class Token(Base):
     ticker:Mapped[str]
     rank: Mapped[int] = mapped_column(Integer, default=0)
     last_price:Mapped[float]
+    timeframe:Mapped[str]=mapped_column(nullable=True,default='60')
+    percent_change_ema:Mapped[float]=mapped_column(nullable=True,default=0)
     total_supply: Mapped[int] = mapped_column(default=0)
     circulating_supply: Mapped[int] = mapped_column(default=0)
     ath_value: Mapped[float] = mapped_column(default=0.0)
     atl_value:Mapped[float] = mapped_column(default=0.0)
-    sygnal_per_day:Mapped[int]
-    pump_percent:Mapped[float]
-    pump_period:Mapped[int]
     is_in_blacklist:Mapped[bool]
     is_muted:Mapped[bool]=mapped_column(default=False)
     user_id:Mapped[int]=mapped_column(ForeignKey('users.id'))
     user:Mapped['User']=relationship('User',back_populates='tokens')
     price_change:Mapped[float]=mapped_column(default=0.0)
     sma:Mapped[float]=mapped_column(default=0.0)
-    ema:Mapped[float]=mapped_column(default=0.0)
     rsi:Mapped[float]=mapped_column(default=0.0)
     volume_per_day:Mapped[float]=mapped_column(default=0.0)
     volume_change:Mapped[float]=mapped_column(default=0.0)

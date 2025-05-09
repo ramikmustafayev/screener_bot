@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 from aiogram import Router ,F
 from aiogram.types import ReplyKeyboardRemove
 from aiogram.types import Message
-from states.states import TokenState,PumpState,TokenInfoState
+from states.states import TokenState,EmaState,TokenInfoState
 from database.models.tokens import Token
 from client_api.schemas import Token as TokenSchema
 from aiogram.fsm.context import FSMContext
@@ -137,10 +137,10 @@ async def process_get_token_info(message:Message,state:FSMContext,repo:RequestsR
     atl_value=token.atl_value
 
     await message.answer(f'''Токен {token.ticker}
-<b>Процент пампа:</> {token.pump_percent}%
-<b>Период пампа:</b> {token.pump_period} минут
 <b>В черном списке:</b> {token.is_in_blacklist}
 <b>Позиция:</b> {rank}
+<b>Таймфрейм:</b> {token.timeframe}
+<b>Процент от EMA:</b> {token.percent_change_ema}
 <b>Цена:</b> ${token.last_price:.8f}
 <b>Total Supply:</b> {total_supply:,.0f}
 <b>Circulating Supply:</b> {circulating_supply:,.0f}
@@ -154,9 +154,32 @@ async def process_get_token_info(message:Message,state:FSMContext,repo:RequestsR
     await state.set_state(None)
 
 
+@token_router.message(TokenInfoState.token_timeframe)
+async def process_change_timeframe(message:Message,repo:RequestsRepo,state:FSMContext,user):
+    data=await state.get_data()
+    timeframe=message.text.strip()
+    ticker=data.get('ticker',None)
+
+    if timeframe not in ['60','120','240','D']:
+        await message.answer('Недопустимый таймфрейм')
+        return
 
 
-@token_router.message(PumpState.pump_percent)
+
+    if ticker is not None:
+        
+        await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'timeframe':timeframe})
+        await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{timeframe}</b>',reply_markup=ReplyKeyboardRemove())
+        await state.set_state(None)
+        await state.update_data(ticker=None)
+    else:
+        await state.set_state(None)
+        await state.update_data(ticker=None)
+        await message.answer('Ошибка при извлечении данных',reply_markup=ReplyKeyboardRemove())
+
+
+
+@token_router.message(EmaState.ema_percent)
 async def process_change_pump_percent(message:Message,repo:RequestsRepo,state:FSMContext,user):
     data=await state.get_data()
     ticker=data.get('ticker',None)
@@ -171,16 +194,11 @@ async def process_change_pump_percent(message:Message,repo:RequestsRepo,state:FS
     
 
     if ticker is not None:
-        if ticker=='all':
-            await repo.tokens.update({'user_id':user.id},{'pump_percent':percent})
-            await message.answer(f'Значение для всех токенов изменено на <b>{percent}</b>',reply_markup=ReplyKeyboardRemove())
-            await state.set_state(None)
-            await state.update_data(ticker=None)
-        else:
-            await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'pump_percent':percent})
-            await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{percent}</b>',reply_markup=ReplyKeyboardRemove())
-            await state.set_state(None)
-            await state.update_data(ticker=None)
+        
+        await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'percent_change_ema':percent})
+        await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{percent}</b>',reply_markup=ReplyKeyboardRemove())
+        await state.set_state(None)
+        await state.update_data(ticker=None)
     else:
         await state.set_state(None)
         await state.update_data(ticker=None)
@@ -385,21 +403,11 @@ async def refresh_database(message: Message, repo, state, user, config, session)
             await update_progress('calc_sma')
 
         
+        
+       
+        
 
-        # Этап 7: Загрузка свечей для EMA
-        tasks = [bybit_client.fetch_klines(token, 'D', 50) for token in tokens_list]
-        results = await asyncio.gather(*tasks)
-        await update_progress('fetch_ema')
-
-        # Этап 8: Расчёт EMA
-        with ThreadPoolExecutor(max_workers=min(len(tokens_list), 4)) as executor:
-            token_ema_list = list(executor.map(calculate_ema, results))
-        await update_progress('calc_ema')
-
-        # Этап 9: Обновление базы данных для EMA
-        for token_ema in token_ema_list:
-            await token_repo.update({'ticker':token_ema['symbol'],'user_id':user.id},{'ema':token_ema['ema']})
- 
+       
 
     except Exception as e:
         print(f"Error fetching klines: {e}")

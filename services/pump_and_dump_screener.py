@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta
 from database.models.tokens import Token
 from database.models.users import User
@@ -6,83 +7,81 @@ from database.repo.requests import RequestsRepo
 from keyboards.all_keyboards import get_inline_kb
 from client_api.bybit_api import BybitClient
 from client_api.schemas import Token as TokenSchema
+from services.ema_calculator import calculate_ema
+
+
 
 
 async def track_prices(message,repo:RequestsRepo,user:User,config):
-            base_url=config.api.bybit_url
-            bybit_client=BybitClient(base_url)
-            try:
-                while True:
-                    try:
-                        tokens:list[TokenSchema]=await bybit_client.fetch_spot_symbols()
-                        
-                    except Exception as e:
-                        
-                        await bybit_client.close()
-                    
-        
+    base_url = config.api.bybit_url
+    bybit_client = BybitClient(base_url)
+    token_repo = repo.tokens
 
-                  
-                
-                    current_time=datetime.now()
+ 
 
-                    for token in tokens:
-                        ticker_name=token.ticker
-                        current_price=token.last_price
-                        price_change=token.price_change*100
-                        
-                        
+    async def safe_fetch_klines(token:Token):
+        try:
+            return await bybit_client.fetch_klines(token.ticker, token.timeframe, 50)
+        except Exception as e:
+            print(f"Ошибка при получении данных для {token.ticker}: {e}")
+            return None  # Возвращаем None для исключённых токенов
 
-                        token_from_db:Token=await repo.tokens.get_one_or_none(user_id=user.id,ticker=ticker_name)
-
-
-
-                        if not token_from_db or token_from_db.is_in_blacklist:
-                            continue
-
-
-                        if token_from_db.is_muted:
-                            if current_time - token_from_db.updated_at >= timedelta(minutes=15):
-                                await repo.tokens.update(
-                                    {'ticker':ticker_name,'user_id':user.id},
-                                    {'is_muted': False, 'updated_at': current_time,'last_price':current_price}
-                                        )
-                         
-                            else:
-                                continue
-
-                
-                 
-                        pump_period=token_from_db.pump_period
-                        pump_percent=token_from_db.pump_percent
-                        last_pump_price=token_from_db.last_price
-                        last_pump_update=token_from_db.updated_at
-                        sygnal_per_day=token_from_db.sygnal_per_day
-                        
-                        
-                        if current_time-last_pump_update<timedelta(minutes=pump_period):
-                            
-                            price_change_in_percent = ((current_price - last_pump_price) / last_pump_price) * 100
-                            
-                            if price_change_in_percent>=pump_percent:
-                                sygnal_per_day+=1
-                                await message.answer(f'''
-                                ByBit — {pump_period} — <b>{ticker_name}</b>
-<b>Pump</b>: {price_change_in_percent:.2f}% ({last_pump_price:.8f} - {current_price:.8f})
-<b>Signal 24</b>: {sygnal_per_day}
-<b>Percent change in 24h</b>: {price_change:.2f}
-
-                                ''',parse_mode='HTML',reply_markup=get_inline_kb(token_from_db))
-                                await repo.tokens.update({'ticker':ticker_name,'user_id':user.id},{'sygnal_per_day':sygnal_per_day,'updated_at':current_time,'last_price':current_price,'price_change':price_change})
-                        else:
-                            await repo.tokens.update({'ticker':ticker_name,'user_id':user.id},{'last_price':current_price,'updated_at':current_time,'price_change':price_change})
-                    
-                    await asyncio.sleep(2)
-                            
-            except asyncio.CancelledError as e:
-                await bybit_client.close()
-                raise asyncio.CancelledError
+    try:
+        while True:
             
+            tokens = await token_repo.get_all(is_in_blacklist=False)
+            active_tokens = []
+            
+            for token in tokens:
+                if token.is_muted and datetime.now()- token.updated_at >=timedelta(minutes=15):
+                    await token_repo.update({'ticker':token.ticker,'user_id':user.id},{'is_muted':False})
+                if not token.is_muted:
+                    active_tokens.append(token)
+
+
+            # безопасный сбор данных
+            tasks = [safe_fetch_klines(token) for token in active_tokens]
+            results = await asyncio.gather(*tasks)
+
+       
+    
+
+            with ThreadPoolExecutor(max_workers=min(len(results), 4)) as executor:
+                token_ema_list = list(executor.map(calculate_ema, results))
+
+           
+            for token_data in token_ema_list:
+                ema = token_data.get('ema')
+                price = token_data.get('last_price')
+                symbol = token_data.get('symbol')
+                token:Token=await token_repo.get_one_or_none(ticker=symbol,user_id=user.id)
+                if ema > 0 and price < ema * (1-token.percent_change_ema/100):
+                    
+                    market_cap=token.circulating_supply*price
+                    percent_drop = round((ema - price) / ema * 100, 2)
+                    await message.answer(f'''<b>Symbol: </b> {symbol}
+<b>MarketCap: </b>{market_cap/1000000:.1f}M
+<b>Timeframe: </b> {token.timeframe}
+<b>Percent Drop: </b>{percent_drop:.2f}%
+''',parse_mode='HTML',reply_markup=get_inline_kb(token))
+
+         
+
+            await asyncio.sleep(30)
+
+    except asyncio.CancelledError:
+        await bybit_client.close()
+        raise
+    except Exception as e:
+        await message.answer(f"⚠️ Ошибка в track_prices: {e}")
+        await bybit_client.close()
+
+
+
+
+
+
+
 
 
 
