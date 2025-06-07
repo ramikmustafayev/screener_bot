@@ -34,8 +34,9 @@ def get_token_info_kb(token:Token):
     kb_list=[
         [InlineKeyboardButton(text='Добавить в черный список' if is_in_blacklist==False else 'Удалить из черного списка'  ,callback_data=f'inline_add_to_black_list_info:{ticker_name}')],
         [InlineKeyboardButton(text='Изменить процент EMA для токена',callback_data=f'inline_change_ema_percent:{ticker_name}')],
+        [InlineKeyboardButton(text='Изменить процент EMA для всех токенов',callback_data=f'inline_change_ema_percent_all:{ticker_name}')],
         [InlineKeyboardButton(text='Изменить таймфрейм для токена',callback_data=f'inline_change_timeframe:{ticker_name}')],
-        
+        [InlineKeyboardButton(text='Изменить таймфрейм для всех токенов', callback_data=f'inline_change_timeframe_all:{ticker_name}')]       
     ]
 
     markup=InlineKeyboardMarkup(inline_keyboard=kb_list)

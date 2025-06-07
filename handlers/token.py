@@ -167,11 +167,16 @@ async def process_change_timeframe(message:Message,repo:RequestsRepo,state:FSMCo
 
 
     if ticker is not None:
-        
-        await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'timeframe':timeframe})
-        await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{timeframe}</b>',reply_markup=ReplyKeyboardRemove())
-        await state.set_state(None)
-        await state.update_data(ticker=None)
+        if ticker=='all':
+            await repo.tokens.update({'user_id':user.id},{'timeframe':timeframe})
+            await message.answer(f'Значение для всех  токенов  изменено на <b>{timeframe}</b>',reply_markup=ReplyKeyboardRemove())
+            await state.set_state(None)
+            await state.update_data(ticker=None)
+        else:
+            await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'timeframe':timeframe})
+            await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{timeframe}</b>',reply_markup=ReplyKeyboardRemove())
+            await state.set_state(None)
+            await state.update_data(ticker=None)
     else:
         await state.set_state(None)
         await state.update_data(ticker=None)
@@ -194,11 +199,16 @@ async def process_change_pump_percent(message:Message,repo:RequestsRepo,state:FS
     
 
     if ticker is not None:
-        
-        await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'percent_change_ema':percent})
-        await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{percent}</b>',reply_markup=ReplyKeyboardRemove())
-        await state.set_state(None)
-        await state.update_data(ticker=None)
+        if ticker=='all':
+            await repo.tokens.update({'user_id':user.id},{'percent_change_ema':percent})
+            await message.answer(f'Значение для всех токенов изменено на <b>{percent}</b>',reply_markup=ReplyKeyboardRemove())
+            await state.set_state(None)
+            await state.update_data(ticker=None)
+        else:        
+            await repo.tokens.update({'user_id':user.id,'ticker':ticker},{'percent_change_ema':percent})
+            await message.answer(f'Значение для токена <b>{ticker}</b> изменено на <b>{percent}</b>',reply_markup=ReplyKeyboardRemove())
+            await state.set_state(None)
+            await state.update_data(ticker=None)
     else:
         await state.set_state(None)
         await state.update_data(ticker=None)
@@ -352,7 +362,7 @@ async def refresh_database(message: Message, repo, state, user, config, session)
         await update_progress('update_db')
 
         # Получение списка токенов
-        tokens = await token_repo.get_all(is_in_blacklist=False)
+        tokens = await token_repo.get_all()
         tokens_list = [token.ticker for token in tokens]
 
         # Этап 2: Загрузка свечей для изменения объёма

@@ -49,16 +49,21 @@ async def process_inline_callback(call:CallbackQuery,user,repo,state:FSMContext)
         await state.update_data(ticker=ticker)
         await call.message.answer(f'Введите новое значение для токена: {token.ticker}',reply_markup=create_cancel_keyboard())
 
-   
+    elif data=='change_ema_percent_all':
+        await state.set_state(EmaState.ema_percent)
+        await state.update_data(ticker='all')
+        await call.message.answer(f'Введите новое значение для всех токенов',reply_markup=create_cancel_keyboard())
     elif data=='change_timeframe':
         await state.set_state(TokenInfoState.token_timeframe)
         await state.update_data(ticker=ticker)
         await call.message.answer(f'Введите новое значение для токена: {token.ticker}',reply_markup=create_cancel_keyboard())
-    
-    
+    elif data=='change_timeframe_all':
+        await state.set_state(TokenInfoState.token_timeframe)
+        await state.update_data(ticker='all')
+        await call.message.answer('Введите новое значение для всех токенов',reply_markup=create_cancel_keyboard())
 
     
-
+    
     
         
   

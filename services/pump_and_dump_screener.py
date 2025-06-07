@@ -38,14 +38,12 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
                 if not token.is_muted:
                     active_tokens.append(token)
 
-
+            
             # безопасный сбор данных
             tasks = [safe_fetch_klines(token) for token in active_tokens]
             results = await asyncio.gather(*tasks)
 
-       
-    
-
+            results=[r for r in results if r]
             with ThreadPoolExecutor(max_workers=min(len(results), 4)) as executor:
                 token_ema_list = list(executor.map(calculate_ema, results))
 
@@ -60,11 +58,13 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
                     market_cap=token.circulating_supply*price
                     percent_drop = round((ema - price) / ema * 100, 2)
                     await message.answer(f'''<b>Symbol: </b> {symbol}
+<b>Rank: </b> {token.rank}
 <b>MarketCap: </b>{market_cap/1000000:.1f}M
 <b>Timeframe: </b> {token.timeframe}
+<b>Threshold: </b> {token.percent_change_ema}%
 <b>Percent Drop: </b>{percent_drop:.2f}%
 ''',parse_mode='HTML',reply_markup=get_inline_kb(token))
-
+                    await asyncio.sleep(0.2)
          
 
             await asyncio.sleep(30)
@@ -72,9 +72,6 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
     except asyncio.CancelledError:
         await bybit_client.close()
         raise
-    except Exception as e:
-        await message.answer(f"⚠️ Ошибка в track_prices: {e}")
-        await bybit_client.close()
 
 
 

@@ -1,6 +1,7 @@
 import pandas as pd
 
 def calculate_ema(args):
+
     symbol = args['symbol']
     klines = args['list']
 
