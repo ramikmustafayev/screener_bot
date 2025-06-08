@@ -51,7 +51,7 @@ async def process_add_token(message:Message,state:FSMContext,user,config,repo:Re
 
     await watch_list_repo.add(user_id=user.id,ticker=ticker,target_price=float(price),direction=direction)
     await message.answer('Токен успешно добавлен в список отслеживаемых',reply_markup=ReplyKeyboardRemove())
-    await state.clear()
+    await state.set_state(None)
     await track_target_prices(message,repo,config,user)
 
 
