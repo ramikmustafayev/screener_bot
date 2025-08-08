@@ -162,7 +162,7 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
                     await asyncio.sleep(0.5)
          
 
-            await asyncio.sleep(120)
+            await asyncio.sleep(300)
 
     except asyncio.CancelledError:
         await bybit_client.close()
