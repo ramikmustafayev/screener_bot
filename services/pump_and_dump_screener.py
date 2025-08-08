@@ -6,8 +6,6 @@ from database.models.users import User
 from database.repo.requests import RequestsRepo
 from keyboards.all_keyboards import get_inline_kb
 from client_api.bybit_api import BybitClient
-from client_api.schemas import Token as TokenSchema
-from services.ema_calculator import calculate_ema
 import pandas as pd
 
 length_high=4
@@ -62,7 +60,7 @@ def process_symbol(args):
     klines = args['list']
 
     if len(klines) < 8:
-        return {"symbol": symbol, "ema": 0, "last_price": 0}
+        return None
 
     df = pd.DataFrame(klines, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'turnover'])
     df['timestamp'] = pd.to_datetime(df['timestamp'].astype(int), unit='ms')
@@ -141,13 +139,14 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
                 if not token_data:
                     await message.answer(f'Недостаточно данных по символу <b>{symbol}</b>')
                     continue
+                print(token_data)
                 last_swing_high = token_data.get('last_swing_high')[1]
                 current_price = token_data.get('current_price')
                 date= token_data.get('date')
                 symbol = token_data.get('symbol')
                 
                 token:Token=await token_repo.get_one_or_none(ticker=symbol,user_id=user.id)
-                if last_swing_high * (100-token.percent_change_ema)/100 <= current_price <= last_swing_high or last_swing_high * (100+token.percent_change_ema)/100 >= current_price >= last_swing_high:
+                if last_swing_high <= current_price <= last_swing_high * (1 + token.percent_change_ema / 100):
       
                     market_cap=token.circulating_supply*current_price
                     percent_drop = round((last_swing_high - current_price) / last_swing_high * 100, 2)
