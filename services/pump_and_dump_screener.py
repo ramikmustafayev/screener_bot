@@ -151,26 +151,32 @@ async def track_prices(message,repo:RequestsRepo,user:User,config):
                     market_cap=token.circulating_supply*current_price
                     percent_drop = round((last_swing_high - current_price) / last_swing_high * 100, 2)
                     filtered_tokens.append({
-                        "token": token,
+                        "symbol": symbol,
+                        "token":token,
+                        "date":date,
                         "market_cap": market_cap,
+                        "last_swing_high":last_swing_high,
                         "percent_drop": percent_drop
                     })
             filtered_tokens.sort(key=lambda x: x["market_cap"], reverse=True)
 
 
             for item in filtered_tokens:
+                symbol=item["symbol"]
                 token = item["token"]
                 market_cap = item["market_cap"]
                 percent_drop = item["percent_drop"]
+                last_swing_high=item["last_swing_high"]
+                date=item["date"]
 
-                await message.answer(f'''<b>Symbol: </b> {token.symbol}
-            <b>Rank: </b> {token.rank}
-            <b>MarketCap: </b>{market_cap / 1_000_000:.1f}M
-            <b>Timeframe: </b> {token.timeframe}
-            <b>Last Swing High:</b> {token.last_swing_high}
-            <b>Date: </b> {token.date}
-            <b>Threshold: </b> {token.percent_change_ema}%
-            <b>Percent Drop: </b>{percent_drop:.2f}%
+                await message.answer(f'''<b>Symbol: </b> {symbol}
+<b>Rank: </b> {token.rank}
+<b>MarketCap: </b>{market_cap / 1_000_000:.1f}M
+<b>Timeframe: </b> {token.timeframe}
+<b>Last Swing High:</b> {last_swing_high}
+<b>Date: </b> {date}
+<b>Threshold: </b> {token.percent_change_ema}%
+<b>Percent Drop: </b>{percent_drop:.2f}%
             ''', parse_mode='HTML', reply_markup=get_inline_kb(token))
 
                 await asyncio.sleep(0.5)
